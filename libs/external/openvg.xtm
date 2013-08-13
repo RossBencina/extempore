@@ -425,7 +425,7 @@
 (bind-lib libopenvg vgResizeSurfaceSH [void,VGint,VGint]*)
 (bind-lib libopenvg vgDestroyContextSH [void]*)
 
-;; VGU closures
+;; VGU 'utility' functions
 
 (bind-lib libopenvg vguLine [VGUErrorCode,VGPath,VGfloat,VGfloat,VGfloat,VGfloat]*)
 (bind-lib libopenvg vguPolygon [VGUErrorCode,VGPath,VGfloat*,VGint,VGboolean]*)
@@ -439,9 +439,41 @@
 
 ;; helpful xtlang functions
 
-(bind-func vgCreateContext
+(bind-func xtm_vg_print_error
+  (lambda ()
+    (let ((vg_err (vgGetError)))
+      (cond ((= vg_err VG_BAD_HANDLE_ERROR)
+             (printf "OpenVG Error: BAD_HANDLE\n"))
+            ((= vg_err VG_ILLEGAL_ARGUMENT_ERROR)
+             (printf "OpenVG Error: ILLEGAL_ARGUMENT\n"))
+            ((= vg_err VG_OUT_OF_MEMORY_ERROR)
+             (printf "OpenVG Error: OUT_OF_MEMORY\n"))
+            ((= vg_err VG_PATH_CAPABILITY_ERROR)
+             (printf "OpenVG Error: PATH_CAPABILITY\n"))
+            ((= vg_err VG_UNSUPPORTED_IMAGE_FORMAT_ERROR)
+             (printf "OpenVG Error: UNSUPPORTED_IMAGE_FORMAT\n"))
+            ((= vg_err VG_UNSUPPORTED_PATH_FORMAT_ERROR)
+             (printf "OpenVG Error: UNSUPPORTED_PATH_FORMAT\n"))
+            ((= vg_err VG_IMAGE_IN_USE_ERROR)
+             (printf "OpenVG Error: IMAGE_IN_USE\n"))
+            ((= vg_err VG_NO_CONTEXT_ERROR)
+             (printf "OpenVG Error: NO_CONTEXT\n"))
+            ((<> vg_err VG_NO_ERROR)
+             (printf "OpenVG Error: unknown error code %d\n" vg_err)))
+      vg_err)))
+
+(bind-alias xtm_colour |4,VGfloat|)
+(bind-alias xtm_color xtm_colour)
+
+(bind-func xtm_create_vg_context
   (lambda (w h)
     (vgCreateContextSH w h)))
+
+(bind-func xtm_vg_setup
+  (lambda ()
+    (glDisable GL_DEPTH_TEST)
+    (vgSeti VG_MATRIX_MODE VG_MATRIX_PATH_USER_TO_SURFACE)
+    (vgLoadIdentity)))
 
 (bind-func xtm_create_vgpath
   (lambda ()
@@ -451,9 +483,9 @@
 
 (bind-func xtm_create_vgimage
   (lambda (path)
-    (let ((w:i32* (alloc))
-          (h:i32* (alloc))
-          (c:i32* (alloc))
+    (let ((w:i32* (salloc))
+          (h:i32* (salloc))
+          (c:i32* (salloc))
           (i 0)
           (row:i8* null)
           (data:i8* (SOIL_load_image path w h c SOIL_LOAD_RGBA))
@@ -466,5 +498,167 @@
                         0
                         (- (pref h 0) i 1)  (pref w 0) 1))
       img)))
-      
+
+;; clear canvas
+
+(bind-func xtm_vg_clear_rect
+  (lambda (r g b a x y w h)
+    (let ((clear_colour:xtm_colour* (salloc)))
+      (afill! clear_colour r g b a)
+      (vgSetfv VG_CLEAR_COLOR 4 (cast clear_colour VGfloat*))
+      (vgClear x y w h))))
+
+(bind-func xtm_vg_clear
+  (lambda (r g b a w h)
+    (xtm_vg_clear_rect r g b a 0 0 w h)))
+
+;; paint
+
+(bind-func xtm_paint_setup
+  (lambda (paint r g b a)
+    (let ((paint_colour:xtm_colour* (salloc)))
+      (vgSetParameteri paint VG_PAINT_TYPE VG_PAINT_TYPE_COLOR)
+      (afill! paint_colour r g b a)
+      (vgSetParameterfv paint VG_PAINT_COLOR 4 (cast paint_colour VGfloat*)))))
+
+(bind-func xtm_paint_setup_stroke
+  (lambda (paint r g b a width)
+    (xtm_paint_setup paint r g b a)
+    (vgSetPaint paint VG_STROKE_PATH)
+    (vgSetf VG_STROKE_LINE_WIDTH width)))
+
+(bind-func xtm_paint_setup_fill
+  (lambda (paint r g b a)
+    (xtm_paint_setup paint r g b a)
+    (vgSetPaint paint VG_FILL_PATH)))
+
+(bind-func xtm_destroy_paint
+  (lambda (paint)
+    (vgDestroyPaint paint)))
+
+(bind-func xtm_draw_path_keep
+  (lambda (path)
+    (vgDrawPath path (+ VG_FILL_PATH VG_STROKE_PATH))))
+
+(bind-func xtm_draw_path
+  (lambda (path)
+    (xtm_draw_path_keep path)
+    (vgDestroyPath path)))
+
+(bind-func xtm_destroy_path
+  (lambda (path)
+    (vgDestroyPath path)))
+
+(bind-func xtm_stroke_path_keep
+  (lambda (path)
+    (vgDrawPath path VG_STROKE_PATH)))
+
+(bind-func xtm_stroke_path
+  (lambda (path)
+    (xtm_stroke_path_keep path)
+    (vgDestroyPath path)))
+
+(bind-func xtm_fill_path_keep
+  (lambda (path)
+    (vgDrawPath path VG_STROKE_PATH)))
+
+(bind-func xtm_fill_path
+  (lambda (path)
+    (xtm_fill_path_keep path)
+    (vgDestroyPath path)))
+
+;; higher-level path drawing with xtlang closures
+
+(bind-func xtm_draw_line
+  (lambda (x1 y1 x2 y2)
+    (let ((path (xtm_create_vgpath))
+          (vgu_err (vguLine path x1 y1 x2 y2)))
+      (if (= vgu_err VGU_NO_ERROR)
+          (xtm_draw_path path))
+      void)))
+
+(bind-func xtm_draw_polygon
+  (lambda (points:VGfloat* npoints closed)
+    (let ((path (xtm_create_vgpath))
+          (vgu_err (vguPolygon path points npoints closed)))
+      (if (= vgu_err VGU_NO_ERROR)
+          (xtm_draw_path path))
+      void)))
+
+(bind-func xtm_draw_rect
+  (lambda (x y w h)
+    (let ((path (xtm_create_vgpath))
+          (vgu_err (vguRect path x y w h)))
+      (if (= vgu_err VGU_NO_ERROR)
+          (xtm_draw_path path))
+      void)))
+
+(bind-func xtm_draw_round_rect
+  (lambda (x y w h arcw arch)
+    (let ((path (xtm_create_vgpath))
+          (vgu_err (vguRoundRect path x y w h arcw arch)))
+      (if (= vgu_err VGU_NO_ERROR)
+          (xtm_draw_path path))
+      void)))
+
+(bind-func xtm_draw_ellipse
+  (lambda (cx cy w h)
+    (let ((path (xtm_create_vgpath))
+          (vgu_err (vguEllipse path cx cy w h)))
+      (if (= vgu_err VGU_NO_ERROR)
+          (xtm_draw_path path))
+      void)))
+
+(bind-func xtm_draw_arc
+  (lambda (x y w h start_angle angle_extent arc_type)
+    (let ((path (xtm_create_vgpath))
+          (vgu_err (vguArc path x y w h start_angle angle_extent arc_type)))
+      (if (= vgu_err VGU_NO_ERROR)
+          (xtm_draw_path path))
+      void)))
+
+;; the closure-making 'generator' versions
+
+(bind-func xtm_line_c
+  (lambda (path)
+    (let ((destroy (lambda () (vgDestroyPath path))))
+      (lambda (x1 y1 x2 y2)
+        (vguLine path x1 y1 x2 y2)
+        void))))
+
+(bind-func xtm_polygon_c
+  (lambda (path)
+    (let ((destroy (lambda () (vgDestroyPath path))))
+      (lambda (points:VGfloat* npoints closed)
+        (vguPolygon path points npoints closed)
+        void))))
+
+(bind-func xtm_rect_c
+  (lambda (path)
+    (let ((destroy (lambda () (vgDestroyPath path))))
+      (lambda (x y w h)
+        (vguRect path x y w h)
+        void))))
+
+(bind-func xtm_round_rect_c
+  (lambda (path)
+    (let ((destroy (lambda () (vgDestroyPath path))))
+      (lambda (x y w h arcw arch)
+        (vguRoundRect path x y w h arcw arch)
+        void))))
+
+(bind-func xtm_ellipse_c
+  (lambda (path)
+    (let ((destroy (lambda () (vgDestroyPath path))))
+      (lambda (cx cy w h)
+        (vguEllipse path cx cy w h)
+        void))))
+
+(bind-func xtm_arc_c
+  (lambda (path)
+    (let ((destroy (lambda () (vgDestroyPath path))))
+      (lambda (x y w h start_angle angle_extent arc_type)
+        (vguArc path x y w h start_angle angle_extent arc_type)
+        void))))
+
 (define *xtmlib-openvg-loaded* #t)
