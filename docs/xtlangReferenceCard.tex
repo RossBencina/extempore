@@ -1,0 +1,426 @@
+\documentclass[10pt, twoside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage[top=0.5in,bottom=0.5in,left=0.5in,right=0.5in]{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
+\geometry{landscape}                		% Activate for for rotated page geometry
+
+\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
+%\usepackage{amssymb}
+\usepackage{setspace}
+
+\usepackage{color}
+%Extempore code highlighting colors
+\definecolor{xtLangTypecolor}{RGB}{85,142,40}	%Green
+\definecolor{xtLangColor}{RGB}{46,111,253}	%Blue
+\definecolor{schemeVerbColor}{RGB}{168,24,75} % Red
+\definecolor{xtLangSchemeVerbColor}{RGB}{159,0,197} % Purple
+
+\usepackage{multicol}
+
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{0pt}{0pt}
+\titlespacing*{\subsection}{0pt}{0pt}{0pt}
+%\titlespacing*{\paragraph}{0pt}{0.5\baselineskip}{1em}
+\titlespacing*{\paragraph}{0pt}{0pt}{0pt}
+
+\usepackage{textcomp}
+
+%\leftskip=0pt plus .5fil
+\rightskip=0pt plus -.5fil
+\parfillskip=0pt plus .5fil
+
+\title{Extempore Reference Card}
+\author{Neil Tiffin}
+\date{\today}				% Activate to display a given date or no date
+
+% Turn off header and footer
+\pagestyle{empty}
+\righthyphenmin=64
+\lefthyphenmin=64 
+ 
+% \null or \hphantom{.} to have object to fill against.
+% \hfill or \hspace{ \stretch{1} } to fill space in middle of line
+% Math Mode, \; thick space, \: medium space, \, thin space, \! negative thin space
+
+
+
+\begin{document}
+\newcommand{\xtType}[1]{\texttt\scriptsize{\textcolor{xtLangTypecolor}{ #1}}\normalsize}
+\newcommand{\xtFunc}[1]{\textcolor{xtLangColor}{#1}}
+\newcommand{\schemeVerb}[1]{\textcolor{schemeVerbColor}{#1}}
+\newcommand{\xtSchemeVerb}[1]{\textcolor{xtLangSchemeVerbColor}{#1}}
+\begin{multicols}{3}
+
+\begin{center}
+     \Large{\textbf{Extempore Reference Card}}
+\end{center}
+\section*{xtlang Types}
+\begin{spacing}{1.5}
+Boolean							\hfill \xtType{i1} \\
+Boolean pointer						\hfill \xtType{i1*} \\
+Character							\hfill \xtType{i8} \\
+Strings {\scriptsize(are null terminated)}	\hfill \xtType{i8*} \\
+Integer							\hfill \xtType{i32} \\
+Integer pointer						\hfill \xtType{i32*} \\
+Long integer (default)				\hfill \xtType{i64} \\
+Long integer pointer					\hfill \xtType{i64*} \\
+32 bit float							\hfill \xtType{float} \\
+32 bit float	 pointer					\hfill \xtType{float*} \\
+64 bit double (default)				\hfill \xtType{double} \\
+64 bit double pointer					\hfill \xtType{double*} \\
+Variable a1 declared as pointer to double \hfill a1:\xtType{double*} \\
+C type void*						\hfill \xtType{i8*} \\
+Tuple of 2 i8's						\hfill \xtType{\textless  i8, i8\textgreater} \\
+Pointer to tuple of double and i32		\null \hfill \xtType{\textless double, i32\textgreater *} \\
+Array of length and type 				\hfill \xtType{$\vert$length, type$\vert$} \\
+Pointer to an array of 4 double			\hfill \xtType{$\vert$4, double$\vert$*} \\
+Vector of length and type				\hfill \xtType{/length, type/} \\
+Pointer to a vector of 4 floats			\hfill \xtType{/4,float/*} \\
+Closure							\hfill \xtType{[return type, arg type,$\:\mathit{. . .}$]}\\
+Pointer to closure which takes 2 i32 arguments and returns i64\hfill \xtType{[i64, i32, i32]*} \\
+\scriptsize
+{\raggedright
+`*' is not a deference operator, it is part of the type label.\par}
+\normalsize
+\vspace{-5mm}
+\end{spacing}
+
+
+\section*{Custom xtlang Types}
+Define type for LLVM compiler. \\
+\null\hfill (\schemeVerb{bind-type} name type) \\
+Tell pre-processor to textually substitute type for name before compiling. \hfill (\schemeVerb{bind-alias} name type) \\
+Define value.\hfill (\schemeVerb{bind-val} name type value)
+
+\section*{xtlang Coercion Functions}
+\begin{multicols}{3}
+(\xtFunc{i1toi64}~\xtType{i1})
+(\xtFunc{i64toi1}~\xtType{i64})
+(\xtFunc{ftoi64}~\xtType{float})
+(\xtFunc{i64tod}~\xtType{i64})
+(\xtFunc{dtoi64}~\xtType{double})
+(\xtFunc{i32toptr}~\xtType{i32})
+(\xtFunc{ptrtoi64}~\xtType{ptr})
+(\xtFunc{dtof}~\xtType{double}) \\
+etc.
+\end{multicols}
+
+
+\section*{Common xtlang \& Scheme}
+The following functions are available in both Scheme and xtlang and should follow R5RS, except as noted.\\
+if $c_{1}$ then $e_{2}$ else $e_{3}$
+					\hfill(\xtSchemeVerb{if} $c_{1}\:e_{2}\:e_{3}$) \\
+Assign $s_1 = e_1$, eval expr
+					\hfill(\xtSchemeVerb{let} ( ($s_1\:e_1$)$\:\mathit{. . .}$) expr) \\
+Sequence				\hfill(\xtSchemeVerb{begin} \\
+Boolean true			\hfill\xtSchemeVerb{\#t} \\
+Boolean false			\hfill\xtSchemeVerb{\#f} \\
+Boolean and			\hfill(\xtSchemeVerb{and} $n_1\:n_2\:\mathit{. . .}$) \\
+Boolean or			\hfill(\xtSchemeVerb{or} $n_1\:n_2\:\mathit{. . .}$) \\
+Boolean not			\hfill(\xtSchemeVerb{not} $o_1$) \\
+Anonymous function		\hfill(\xtSchemeVerb{lambda} ($a_{1}\:\mathit{...}$) expr)\\
+Multiply				\hfill(\xtSchemeVerb{*} $n_1\:\mathit{. . .}$) \\
+Divide				\hfill(\xtSchemeVerb{/} $n_1\:n_2\:\mathit{. . .}$) \\
+Add					\hfill(\xtSchemeVerb{+} $n_1\:\mathit{. . .}$) \\
+Subtract				\hfill(\xtSchemeVerb{-} $n_1\:n_2\:\mathit{. . .}$) \\
+Equality				\hfill(\xtSchemeVerb{=} $n_1\:n_2$) \\
+Less Than				\hfill(\xtSchemeVerb{\textless} $n_1\:n_2$) \\
+Greater Than			\hfill(\xtSchemeVerb{\textgreater} $n_1\:n_2$) \\
+Not equal				\hfill(\xtSchemeVerb{\textless\textgreater} $n_1\:n_2$) \\
+Remainder			\hfill(\xtSchemeVerb{modulo} $n_1\:n_2$) \\
+Is null				\hfill(\xtSchemeVerb{null?} $n_1$) \\
+Assignment			\hfill(\xtSchemeVerb{set!} $s_1\:e_1$) \\
+Loop {\scriptsize(from common lisp)}\hfill(\xtSchemeVerb{dotimes} ($s_1\:e_1$) expr)\\
+Conditional			\hfill(\xtSchemeVerb{cond} ($c_{1}\:e_{2}$) $\mathit{. . .}$ (\xtSchemeVerb{else} $e_{n}$)) \\
+\scriptsize
+{\raggedright
+$a_x$ argument,
+$c_x$ boolean expression,
+$e_x$ general expression, \\
+$n_x$ numeric expression, 
+$o_x$ object,
+$s_x$ symbol\par}
+\normalsize
+
+
+\section*{xtlang Memory Allocation}
+Allocate on stack.\hfill(\xtFunc{salloc} size) \\
+Allocate on heap.\hfill(\xtFunc{halloc} size) \\
+Create memory zone.\hfill(\xtFunc{memzone} size ...) \\
+Allocate in zone.\hfill(\xtFunc{zalloc} size) \\
+Push zone.\hfill(\xtFunc{push\_zone}) \\
+Pop zone.\hfill(\xtFunc{pop\_zone}) \\
+long int *a1 = 2; \\
+\hphantom{.}\hfill (\xtSchemeVerb{let} ((a1:\xtType{i64*} (\xtFunc{salloc}))) (\xtFunc{pset!} a1 0 2) ...) \\
+int a1[4]; 	\hfill(a1:\xtType{i32*} (\xtFunc{zalloc} 4))
+
+
+\section*{xtlang Pointers \& Aggregrates}
+Deference pointer	\hfill(\xtFunc{pref}~ptr$_1$~offset$_1$) \\
+Deference tuple	\hfill(\xtFunc{tref}~ptr$_1$~offset$_1$) \\
+Deference array	\hfill(\xtFunc{aref}~ptr$_1$~offset$_1$) \\
+Deference vector	\hfill(\xtFunc{vref}~ptr$_1$~offset$_1$) \\
+Set pointer		\hfill(\xtFunc{pset!}~ptr$_1$~offset$_1$~$p_1$) \\
+Set tuple			\hfill(\xtFunc{tset!}~ptr$_1$~offset$_1$~$t_1$) \\
+Set array			\hfill(\xtFunc{aset!}~ptr$_1$~offset$_1$~$a_1$) \\
+Set vector			\hfill(\xtFunc{vset!}~ptr$_1$~offset$_1$~$v_1$) \\
+Fill pointer			\hfill(\xtFunc{pfill!}~ptr$_1$~$e_1$,~...~$e_n$) \\
+Fill tuple			\hfill(\xtFunc{tfill!}~ptr$_1$~$e_1$,~...~$e_n$) \\
+Fill array			\hfill(\xtFunc{afill!}~ptr$_1$~$e_1$,~...~$e_n$) \\
+Fill vector	 		\hfill(\xtFunc{vfill!}~ptr$_1$~$e_1$,~...~$e_n$) \\
+Get address pointer	\hfill(\xtFunc{pref-ptr}~ptr$_1$~offset$_1$) \\
+Get address tuple	\hfill(\xtFunc{tref-ptr}~ptr$_1$~offset$_1$) \\
+Get address array	\hfill(\xtFunc{aref-ptr}~ptr$_1$~offset$_1$) \\
+Get address vector	\hfill(\xtFunc{vref-ptr}~ptr$_1$~offset$_1$) \\
+\scriptsize
+{\raggedright
+$a_x$ array.
+ptr$_x$ i1*, i8*, i16*, i32*, float*, double* pointers.
+offset$_x$ natural number.
+$e_x$ expression.
+$n_x$ float, double, i1, i8, i32, i64 expression.
+$t_x$ tuple.
+$v_x$ vector.
+\par}
+\normalsize
+
+
+\section*{xtlang Core Functions}
+Uses boost random() or C rand() [0.0..1.0]  \\
+\hphantom{.}\hfill\xtType{double}~(\xtFunc{random}) \\
+\hphantom{.}\hfill(\xtFunc{begin} $e_1$ $e_2$ ...) \\
+\hphantom{.}\hfill\xtType{null} \\
+\hphantom{.}\hfill(\xtFunc{now}) \\
+void \\
+\hphantom{.}\hfill(\xtFunc{lambdas} ?) \\
+\hphantom{.}\hfill(\xtFunc{lambdaz} ?) \\
+\hphantom{.}\hfill(\xtFunc{lambdah} ?) \\
+\hphantom{.}\hfill(\xtFunc{printf}~format:\xtType{i8*}~$e_1$~$e_2$...) \\
+\hphantom{.}\hfill(\xtFunc{sprintf}~str:\xtType{i8*}~format:\xtType{i8*}~$e_1$~$e_2$...)\\
+Callback\hfill(\xtFunc{callback} time name args ...) \\
+Schedule {\scriptsize(same as callback)}\hfill(\xtFunc{schedule} time name args ...)  \\
+cast $\vert$ bitcast\hfill(\xtFunc{bitcast} ?)\\
+convert $\vert$ bitconvert\hfill(\xtFunc{bitconvert} ?) \\
+\& $\vert$ bitwise-and\hfill(\xtFunc{bitwise-and}~$n_1$~$n_2$~...) \\
+bor $\vert$ bitwise-or\hfill(\xtFunc{bitwise-or}~$n_1$~$n_2$~...) \\
+$\wedge$ $\vert$ bitwise-eor\hfill(\xtFunc{bitwise-eor}~$n_1$~$n_2$~...)\\
+\textless\textless $\vert$ bitwise-shift-left\hfill(\xtFunc{bitwise-shift-left}~$n_1$~$n_2$) \\
+\textgreater\textgreater $\vert$ bitwise-shift-right\hfill(\xtFunc{bitwise-shift-right}~$n_1$~$n_2$)\\
+\textasciitilde~$\vert$~bitwise-not\hfill(\xtFunc{bitwise-not}~$n_1$) \\
+\scriptsize
+{\raggedright
+$e_x$ expression,
+$n_x$ float, double, i1, i8, i32, i64 expression\par}
+\normalsize
+
+\section*{Extempore Scheme}
+{\raggedright
+Originally from TinyScheme v1.35. Implements most of R5RS except macro, which is a common lisp style macro.\par}
+
+
+\section*{Time}
+Now.	\hfill(\xtFunc{now}) \\
+Second constant.	\hfill*second* \\
+Minute constant.	\hfill*minute* \\
+Hour constant.	\hfill*hour*
+
+
+\section*{General Functions}
+TODO
+
+\section*{Music Functions}
+ \hfill
+(\xtFunc{define-instrument} name note\_c effect\_c ...) \\
+Note closure \\
+\null\hfill[[output,time,channel,freq,volume]*]* \\
+Effect closure \\  
+\null\hfill[output,input,time,channel,data*]* \\
+\hphantom{.}\hfill(\xtFunc{play-note} time inst pitch volume duration)\par
+TODO
+
+\section*{Debugging}
+TODO
+
+\section*{xtlang C bindings math.h c99}
+\begin{multicols}{3}
+(\xtFunc{cos}~$r_1$) \\
+(\xtFunc{tan}~$r_1$) \\
+(\xtFunc{sin}~$r_1$)
+(\xtFunc{cosh}~$r_1$)
+(\xtFunc{tanh}~$r_1$)
+(\xtFunc{sinh}~$r_1$)
+(\xtFunc{acos}~$r_1$)
+(\xtFunc{asin}~$r_1$)
+(\xtFunc{atan}~$r_1$)
+(\xtFunc{atan2}~$r_1$~$r_2$)
+(\xtFunc{ceil}~$r_1$)
+(\xtFunc{floor}~$r_1$)
+(\xtFunc{exp}~$r_1$)
+(\xtFunc{fmod}~$r_1$~$r_2$)
+(\xtFunc{pow}~$r_1$~$r_2$)
+(\xtFunc{log}~$r_1$)
+(\xtFunc{log2}~$r_1$)
+(\xtFunc{log10}~$r_1$)
+(\xtFunc{sqrt}~$r_1$)
+(\xtFunc{fabs}~$r_1$)
+%c99
+(\xtFunc{acosh}~$r_1$)
+(\xtFunc{asinh}~$r_1$)
+(\xtFunc{atanh}~$r_1$)
+(\xtFunc{cbrt}~$r_1$)
+(\xtFunc{copysign}~$r_1$~$r_2$)
+(\xtFunc{erf}~$r_1$)
+(\xtFunc{erfc}~$r_1$)
+(\xtFunc{exp2}~$r_1$)
+(\xtFunc{expm1}~$r_1$)
+(\xtFunc{fdim}~$r_1$~$r_1$)
+(\xtFunc{fma}~$r_1$~$r_2$~$r_3$)
+(\xtFunc{fmax}~$r_1$~$r_1$)
+(\xtFunc{fmin}~$r_1$~$r_1$)
+(\xtFunc{hypot}~$r_1$~$r_1$)
+(\xtFunc{ilogb}~$r_1$)
+(\xtFunc{lgamma}~$r_1$)
+\xtType{i64}~(\xtFunc{llrint}~$r_1$)
+\xtType{i64}~(\xtFunc{lrint}~$r_1$)
+\xtType{i32}~(\xtFunc{rint}~$r_1$)
+\xtType{i64}~(\xtFunc{llround}~$r_1$)
+\xtType{i32}~(\xtFunc{lround}~$r_1$)
+(\xtFunc{log1p}~$r_1$)
+\xtType{i32}~(\xtFunc{logb}~$r_1$)
+(\xtFunc{nan}~\xtType{i8*})
+(\xtFunc{nearbyint}~$r_1$)
+(\xtFunc{nextafter}~$r_1$~$r_2$)
+(\xtFunc{nexttoward}~$r_1$~$r_2$)
+(\xtFunc{remainder}~$r_1$~$r_2$)
+(\xtFunc{remquo}~$r_1$~$r_2$~\xtType{i8*})
+(\xtFunc{round}~$r_1$)
+(\xtFunc{scalbn}~$r_1$,~\xtType{i32})
+(\xtFunc{tgamma}~$r_1$)
+(\xtFunc{trunc}~$r_1$) \\
+\end{multicols}
+\scriptsize
+{\raggedright
+$r_x$ double or float. Return type same as args, except as noted.\par}
+\normalsize
+
+
+\section*{xtlang C bindings stdio.h}
+\begin{multicols}{2}
+\xtType{void}~(\xtFunc{clearerr}~\xtType{i8*})
+\xtType{i8*}~(\xtFunc{ctermid}~\xtType{i8*})
+\xtType{i32}~(\xtFunc{fclose}~\xtType{i8*})
+\xtType{i8*}~(\xtFunc{fdopen}~\xtType{i32,i8*})
+\xtType{i32}~(\xtFunc{feof}~\xtType{i8*})
+\xtType{i32}~(\xtFunc{ferror}~\xtType{i8*})
+\xtType{i32}~(\xtFunc{fflush}~\xtType{i8*})
+\xtType{i32}~(\xtFunc{fgetc}~\xtType{i8*})
+\xtType{i8*}~(\xtFunc{fgets}~\xtType{i8*,i32,i8*})
+\xtType{i32}~(\xtFunc{fileno}~\xtType{i8*})
+\xtType{void}~(\xtFunc{flockfile}~\xtType{i8*})
+\xtType{i8*}~(\xtFunc{fopen}~\xtType{i8*,i8*})
+\xtType{i32}~(\xtFunc{fputc}~\xtType{i32,i8*})
+\xtType{i32}~(\xtFunc{fputs}~\xtType{i8*,i8*})
+\xtType{i64}~(\xtFunc{fread}~\xtType{i8*,i64,i64,i8*})
+\xtType{i8*}~(\xtFunc{freopen}~\xtType{i8*,i8*,i8*})
+\xtType{i32}~(\xtFunc{fseek}~\xtType{i8*,i64,i32})
+\xtType{i64}~(\xtFunc{ftell}~\xtType{i8*})
+\xtType{i32}~(\xtFunc{ftrylockfile}~\xtType{i8*})
+\xtType{void}~(\xtFunc{funlockfile}~\xtType{i8*})
+\xtType{i64}~(\xtFunc{fwrite}~\xtType{i8*,i64,i64,i8*})
+\xtType{i32}~(\xtFunc{getc}~\xtType{i8*})
+\xtType{i32}~(\xtFunc{getchar})
+\xtType{i32}~(\xtFunc{getc\_unlocked}~\xtType{i8*})
+\xtType{i32}~(\xtFunc{getchar\_unlocked})
+\xtType{i8*}~(\xtFunc{gets}~\xtType{i8*})
+\xtType{i32}~(\xtFunc{getw}~\xtType{i8*})
+\xtType{i32}~(\xtFunc{pclose}~\xtType{i8*})
+\xtType{void}~(\xtFunc{perror}~\xtType{i8*})
+\xtType{i8*}~(\xtFunc{popen}~\xtType{i8*,i8*})
+\xtType{i32}~(\xtFunc{putc}~\xtType{i32,i8*})
+\xtType{i32}~(\xtFunc{putchar}~\xtType{i32})
+\xtType{i32}~(\xtFunc{putc\_unlocked}~\xtType{i32,i8*})
+\xtType{i32}~(\xtFunc{putchar\_unlocked}~\xtType{i32})
+\xtType{i32}~(\xtFunc{puts}~\xtType{i8*})
+\xtType{i32}~(\xtFunc{putw}~\xtType{i32,i8*})
+\xtType{i32}~(\xtFunc{remove}~\xtType{i8*})
+\xtType{i32}~(\xtFunc{rename}~\xtType{i8*,i8*})
+\xtType{void}~(\xtFunc{rewind}~\xtType{i8*})
+\xtType{void}~(\xtFunc{setbuf}~\xtType{i8*,i8*})
+\xtType{i32}~(\xtFunc{setvbuf}~\xtType{i8*,i8*,i32,i64})
+\xtType{i8*}~(\xtFunc{tempnam}~\xtType{i8*,i8*})
+\xtType{i8*}~(\xtFunc{tmpfile})
+\xtType{i8*}~(\xtFunc{tmpnam}~\xtType{i8*})
+\xtType{i32}~(\xtFunc{ungetc}~\xtType{i32,i8*})
+\xtType{i32}~(\xtFunc{llvm\_printf}$^1$~\xtType{i8*},~...)
+\xtType{i32}~(\xtFunc{llvm\_sprintf}$^1$~\xtType{i8*,i8*},~...)
+\end{multicols}
+\scriptsize
+{\raggedright
+$^1$~Can't be standard printf because of variable args\par}
+\normalsize
+
+
+\section*{xtlang C bindings stdlib.h}
+\begin{multicols}{2}
+\xtType{i8*}~(\xtFunc{malloc}~\xtType{i64})
+\xtType{void}~(\xtFunc{free}~\xtType{i8*})
+\xtType{i8*}~(\xtFunc{malloc16}~\xtType{i64})
+\xtType{void}~(\xtFunc{free16}~\xtType{i8*})
+\xtType{i8*}~(\xtFunc{getenv}~\xtType{i8*})
+\xtType{i32}~(\xtFunc{system}~\xtType{i8*}) \\
+\end{multicols}
+
+
+\section*{xtlang C bindings string.h}
+\begin{multicols}{2}
+\xtType{double}~(\xtFunc{atof}~\xtType{i8*})
+\xtType{i32}~(\xtFunc{atoi}~\xtType{i8*}) \\
+\xtType{i64}~(\xtFunc{atol}~\xtType{i8*})
+\xtType{i8*}~(\xtFunc{memccpy}~\xtType{i8*,i8*,i32,i64})
+\xtType{i8*}~(\xtFunc{memchr}~\xtType{i8*,i32,i64})
+\xtType{i32}~(\xtFunc{memcmp}~\xtType{i8*,i8*,i64})
+\xtType{i8*}~(\xtFunc{memcpy}~\xtType{i8*,i8*,i64})
+\xtType{i8*}~(\xtFunc{memmove}~\xtType{i8*,i8*,i64})
+\xtType{i8*}~(\xtFunc{memset}~\xtType{i8*,i32,i64})
+\xtType{i8*}~(\xtFunc{strcat}~\xtType{i8*,i8*})
+\xtType{i8*}~(\xtFunc{strchr}~\xtType{i8*,i32})
+\xtType{i32}~(\xtFunc{strcmp}~\xtType{i8*,i8*})
+\xtType{i32}~(\xtFunc{strcoll}~\xtType{i8*,i8*})
+\xtType{i8*}~(\xtFunc{strcpy}~\xtType{i8*,i8*})
+\xtType{i64}~(\xtFunc{strcspn}~\xtType{i8*,i8*})
+\xtType{i8*}~(\xtFunc{strdup}~\xtType{i8*})
+\xtType{i8*}~(\xtFunc{strerror}~\xtType{i32})
+\xtType{i64}~(\xtFunc{strlen}~\xtType{i8*})
+\xtType{i8*}~(\xtFunc{strncat}~\xtType{i8*,i8*,i64})
+\xtType{i32}~(\xtFunc{strncmp}~\xtType{i8*,i8*,i64})
+\xtType{i8*}~(\xtFunc{strncpy}~\xtType{i8*,i8*,i64})
+\xtType{i8*}~(\xtFunc{strpbrk}~\xtType{i8*,i8*})
+\xtType{i8*}~(\xtFunc{strrchr}~\xtType{i8*,i32})
+\xtType{i64}~(\xtFunc{strspn}~\xtType{i8*,i8*})
+\xtType{i8*}~(\xtFunc{strstr}~\xtType{i8*,i8*})
+\xtType{i8*}~(\xtFunc{strtok}~\xtType{i8*,i8*})
+\xtType{i8*}~(\xtFunc{strtok\_r}~\xtType{i8*,i8*,i8**})
+\xtType{i64}~(\xtFunc{strxfrm}~\xtType{i8*,i8*,i64}) \\
+\end{multicols}
+\scriptsize
+
+
+\section*{Function Name Conventions}
+`!' at end of name indicates function is destructive (e.g. mutates the arguments passed to it). \\
+`\_c' at end of name indicates an xtlang closure. \\
+`-' minus sign separator denotes Scheme name. \\
+`\_' underscore separator denotes xtlang name. \\
+`*' on both ends of variable denotes global scope. \\
+`?' at the end of name denotes function returns boolean. 
+
+\scriptsize
+\flushleft
+\textcolor{xtLangTypecolor}{Color denotes xtlang type.} \\
+\textcolor{xtLangColor}{Color denotes xtlang only verb.} \\
+\textcolor{schemeVerbColor}{Color denotes scheme only verb.} \\
+\textcolor{xtLangSchemeVerbColor}{Color denotes common xtlang and Scheme verb.} \\
+\vfill
+\today~v1.0 \copyright 2013 Neil Tiffin \\
+Permission is granted to make and distribute copies of this card provided the copyright notice and this permission notice are preserved on all copies.  Send comments and corrections to neilt@neiltiffin.com
+
+\end{multicols}
+\end{document}  

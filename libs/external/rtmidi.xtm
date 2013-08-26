@@ -127,20 +127,22 @@
 ;;  set up some input/output ports
 
 (bind-func query_in_ports
+"List all midi destination ports."
   (lambda (dev:midi_in_device*)
     (let ((num_ports (getPortCount dev))
           (i:i64 0))
-      (printf "--Input ports--\n")
+      (printf "--MIDI destination ports--\n")
       (dotimes (i num_ports)
         (printf "Port %lld: %s\n" i (getPortName dev i)))
       (printf "\n")
       void)))
 
 (bind-func query_out_ports
+"List all midi source ports."
   (lambda (dev:midi_out_device*)
     (let ((num_ports (getPortCount dev))
           (i:i64 0))
-      (printf "--Output ports--\n")
+      (printf "--MIDI source ports--\n")
       (dotimes (i num_ports)
         (printf "Port %lld: %s\n" i (getPortName dev i)))
       (printf "\n")
@@ -152,15 +154,15 @@
 (bind-func midi_in
   (let ((device:midi_in_device* (zalloc)))
     (newMidiDevice device UNSPECIFIED "Extempore Virtual Midi Input")
-    (openVirtualPort device "Extempore Input")
+    (openVirtualPort device "Extempore MIDI Input")
     (lambda ()
       device)))
 
 (bind-func midi_out
   (let ((device:midi_out_device* (zalloc)))
     (newMidiOutDevice device UNSPECIFIED "Extempore Midi Output")
-    ;; (openVirtualPort device "Ben Port")
-    (openPort device 0 "Extempore Output") ;; needs to be correct channel
+    (openVirtualPort device "Extempore MIDI Output")
+    ;;(openPort device 0 "Extempore Output") ;; needs to be correct channel
     (lambda ()
       device)))
 
